@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sampaio Recursos Humanos — Sistema de Cadastro</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f1f5f9; color: #1e293b; min-height: 100vh;
+  }
+
+  /* ---------- TOPO ---------- */
+  .topbar {
+    background: linear-gradient(90deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
+    padding: 0 28px; height: 64px; display: flex; align-items: center;
+    justify-content: space-between; box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 9px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #1e40af; font-size: 17px;
+  }
+  .brand h1 { font-size: 17px; letter-spacing: .3px; color: #fff; }
+  .brand span { font-size: 11px; color: #bfdbfe; display: block; }
+  .user { font-size: 13px; color: #bfdbfe; display: flex; align-items: center; gap: 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: #3b82f6;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; color: #fff;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .wrap { display: grid; grid-template-columns: 420px 1fr; gap: 22px; padding: 24px 28px; }
+  @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(15,23,42,.06);
+  }
+  .panel-head {
+    padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-head h2 { font-size: 15px; color: #1e40af; font-weight: 600; }
+  .panel-body { padding: 20px; }
+
+  /* ---------- FORM ---------- */
+  label { display: block; font-size: 12px; color: #64748b; margin: 14px 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  label:first-of-type { margin-top: 0; }
+  input {
+    width: 100%; padding: 13px 14px; border-radius: 9px;
+    border: 2px solid #cbd5e1; background: #fff; color: #0f172a;
+    font-size: 15px; transition: all .15s;
+  }
+  input::placeholder { color: #94a3b8; }
+  input:focus {
+    outline: none; border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37,99,235,.15);
+  }
+  input.erro { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.12); }
+  input.ok { border-color: #22c55e; }
+  .hint { font-size: 11px; color: #64748b; margin-top: 5px; }
+  .hint.erro { color: #dc2626; }
+
+  button[type=submit] {
+    margin-top: 22px; width: 100%; padding: 15px; border: none; border-radius: 9px;
+    background: linear-gradient(180deg, #22c55e, #16a34a); color: #fff;
+    font-weight: 800; font-size: 15px; letter-spacing: .4px; cursor: pointer;
+    transition: transform .1s, box-shadow .15s;
+  }
+  button[type=submit]:hover { box-shadow: 0 6px 18px rgba(34,197,94,.35); transform: translateY(-1px); }
+  button[type=submit]:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ---------- PAINEL DE REGISTROS ---------- */
+  .counter {
+    background: #dcfce7; color: #15803d; border: 1px solid #86efac;
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 10px 12px; color: #64748b; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .6px; border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; }
+  tbody tr:last-child td { border-bottom: none; }
+  .dia { color: #94a3b8; font-size: 11px; }
+  .vazio { text-align: center; color: #94a3b8; padding: 44px 12px; font-size: 13px; }
+
+  @keyframes flash { 0% { background: #dcfce7; } 100% { background: transparent; } }
+  tr.novo { animation: flash 1.6s ease-out; }
+
+  /* ---------- TOAST ---------- */
+  #toast {
+    position: fixed; top: 80px; right: 28px; z-index: 99;
+    background: #fff; border: 1px solid #22c55e; color: #15803d;
+    padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 30px rgba(15,23,42,.15);
+    opacity: 0; transform: translateY(-12px); transition: all .25s;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast .check {
+    width: 22px; height: 22px; border-radius: 50%; background: #22c55e;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPO -->
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">SRH</div>
+    <div>
+      <h1>Sampaio Recursos Humanos</h1>
+      <span>Sistema de Gestão de Colaboradores</span>
+    </div>
+  </div>
+  <div class="user">
+    <span>Operador</span>
+    <div class="avatar">OP</div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- FORMULÁRIO -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Novo Cadastro</h2>
+    </div>
+    <div class="panel-body">
+      <form id="f" autocomplete="off">
+        <label for="nome">Nome completo</label>
+        <input id="nome" name="nome" placeholder="Ex: Ana Silva Santos" autofocus>
+
+        <label for="cpf">CPF</label>
+        <input id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+        <div class="hint" id="cpf-hint">Digite os 11 dígitos do CPF</div>
+
+        <label for="telefone">Telefone</label>
+        <input id="telefone" name="telefone" placeholder="(11) 99999-9999" maxlength="15">
+
+        <button type="submit" id="btn" disabled>REGISTRAR COLABORADOR</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- REGISTROS -->
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Colaboradores Registrados</h2>
+      <div class="counter" id="counter">0 registros</div>
+    </div>
+    <div class="panel-body" style="padding:0 8px 8px;">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Nome</th><th>CPF</th><th>Telefone</th><th>Hora</th></tr>
+        </thead>
+        <tbody id="lista">
+          <tr><td colspan="5" class="vazio">Nenhum colaborador registrado ainda</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"><div class="check">✓</div><span id="toast-msg">Cadastro realizado!</span></div>
+
+<script>
+  const lista   = document.getElementById('lista');
+  const counter = document.getElementById('counter');
+  const toast   = document.getElementById('toast');
+  const toastMsg= document.getElementById('toast-msg');
+  const btn     = document.getElementById('btn');
+  const cpfHint = document.getElementById('cpf-hint');
+  let registros = [];
+
+  /* ---------- MÁSCARA CPF ---------- */
+  const cpfEl = document.getElementById('cpf');
+  cpfEl.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9)      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    this.value = v;
+    validarCPF(this);
+  });
+
+  /* ---------- MÁSCARA TELEFONE ---------- */
+  const telEl = document.getElementById('telefone');
+  telEl.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 6) v = v.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+    else if (v.length > 2) v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+    this.value = v;
+    atualizarBotao();
+  });
+
+  /* ---------- CONFERENCIA SIMPLES DE CPF (aceita qualquer numero) ---------- */
+  function validarCPF(el) {
+    const digitos = el.value.replace(/\D/g, '');
+    el.classList.remove('ok', 'erro');
+    cpfHint.classList.remove('erro');
+
+    if (digitos.length === 0) {
+      cpfHint.textContent = 'Digite os 11 dígitos do CPF';
+      atualizarBotao();
+      return false;
+    }
+    if (digitos.length < 11) {
+      cpfHint.textContent = 'CPF incompleto (' + digitos.length + '/11 dígitos)';
+      cpfHint.classList.add('erro');
+      atualizarBotao();
+      return false;
+    }
+    el.classList.add('ok');
+    cpfHint.textContent = 'CPF válido ✓';
+    atualizarBotao();
+    return true;
+  }
+
+  /* ---------- HABILITAR BOTAO COM DADOS PREENCHIDOS ---------- */
+  function atualizarBotao() {
+    const nome = document.getElementById('nome').value.trim();
+    const cpfOk = cpfEl.value.replace(/\D/g, '').length === 11;
+    const tel = telEl.value.replace(/\D/g, '');
+    btn.disabled = !(nome.length >= 3 && cpfOk && tel.length >= 10);
+  }
+  document.getElementById('nome').addEventListener('input', atualizarBotao);
+
+  /* ---------- REGISTRAR ---------- */
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (cpfEl.value.replace(/\D/g, '').length !== 11) { validarCPF(cpfEl); return; }
+
+    const nome = document.getElementById('nome').value.trim();
+    const cpf  = cpfEl.value;
+    const tel  = telEl.value;
+
+    registros.unshift({ nome, cpf, tel, hora: new Date() });
+    renderizar();
+
+    toastMsg.textContent = 'Cadastro realizado: ' + nome.split(' ')[0];
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+
+    this.reset();
+    cpfEl.classList.remove('ok');
+    cpfHint.textContent = 'Digite os 11 dígitos do CPF';
+    cpfHint.classList.remove('erro');
+    atualizarBotao();
+    document.getElementById('nome').focus();
+  });
+
+  /* ---------- RENDERIZAR TABELA ---------- */
+  function renderizar() {
+    counter.textContent = registros.length + (registros.length === 1 ? ' registro' : ' registros');
+
+    if (registros.length === 0) {
+      lista.innerHTML = '<tr><td colspan="5" class="vazio">Nenhum colaborador registrado ainda</td></tr>';
+      return;
+    }
+
+    lista.innerHTML = registros.map((r, i) => `
+      <tr class="${i === 0 ? 'novo' : ''}">
+        <td class="dia">${registros.length - i}</td>
+        <td><b>${r.nome}</b></td>
+        <td>${r.cpf}</td>
+        <td>${r.tel}</td>
+        <td class="dia">${r.hora.toLocaleTimeString('pt-BR')}</td>
+      </tr>
+    `).join('');
+  }
+</script>
+</body>
+</html>
